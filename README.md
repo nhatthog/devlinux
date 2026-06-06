@@ -101,12 +101,19 @@ cd devlinux
 
 ---
 
-### Bước 4 — Pull code mới nhất và tạo branch
+### Bước 4 — Sync fork và tạo branch
 
-**Làm bước này mỗi buổi học trước khi bắt đầu làm bài.**
+**Làm bước này mỗi buổi học trước khi bắt đầu làm bài để cập nhật được danh sách bài tập về nhà mới nhất.**
+
+**Bước 4.1 — Sync fork từ repo của giáo viên (trên GitHub web)**
+
+1. Vào fork của bạn trên GitHub
+2. Nhấn nút **Sync fork** → chọn **Update branch**
+
+**Bước 4.2 — Cập nhật code cục bộ và tạo branch**
 
 ```bash
-# 1. Quay về master và pull code mới nhất
+# 1. Quay về master và pull code mới nhất từ fork
 git checkout master
 git pull
 
@@ -274,7 +281,9 @@ Thư mục `session-02/`, `session-03/`... đã được tạo sẵn — không 
 Làm lại **Bước 4 → Bước 7** mỗi buổi:
 
 ```bash
-# Bước 4: Tạo branch buổi mới
+# Bước 4.1: Sync fork trên GitHub (vào github.com, click "Sync fork" → "Update branch")
+
+# Bước 4.2: Tạo branch buổi mới
 git checkout master
 git pull
 git checkout -b embedded-linux/K26.1/nguyen-van-a/session-02
