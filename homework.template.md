@@ -1,26 +1,26 @@
-# Đề Bài — session-XX
+# Assignment — session-XX
 
-> **Hướng dẫn dùng template này:**
-> - Xoá các dòng `>` hướng dẫn trước khi push
-> - Các phần đánh dấu `(tuỳ chọn)` có thể bỏ nếu không cần
-> - Tag `[build]` / `[review-only]` trong tiêu đề Exercise là **bắt buộc**
+> **How to use this template:**
+> - Remove all `>` instruction lines before pushing
+> - Sections marked `(optional)` can be omitted if not needed
+> - The `[build]` / `[review-only]` tag in each Exercise heading is **required**
 
 ---
 
 ## Exercise_1 [build]
 
-> Tag `[build]`: hệ thống sẽ build và chạy thử — bắt buộc có Makefile.
-> Tag `[review-only]`: chỉ review code tĩnh — không cần Makefile (dùng cho Yocto, Device Tree, MCU, v.v.).
+> Tag `[build]`: the system will compile and run the program — a Makefile is required.
+> Tag `[review-only]`: static code review only — no Makefile needed (used for Yocto, Device Tree, MCU, etc.).
 
-### Đề bài
+### Problem Statement
 
-<!-- Mô tả yêu cầu bài tập. Càng cụ thể càng tốt. -->
+<!-- Describe the exercise requirements. Be as specific as possible. -->
 
-Viết chương trình C thực hiện ...
+Write a C program that ...
 
-### Định hướng thiết kế (tuỳ chọn)
+### Design Hints (optional)
 
-<!-- Gợi ý struct, enum, typedef nếu muốn định hướng học viên. Bỏ phần này nếu muốn học viên tự thiết kế. -->
+<!-- Suggest structs, enums, or typedefs to guide students. Remove this section if you want students to design their own. -->
 
 ```c
 typedef struct {
@@ -29,62 +29,62 @@ typedef struct {
 } my_struct_t;
 ```
 
-### Hướng tiếp cận (tuỳ chọn)
+### Suggested Approach (optional)
 
-<!-- Mô tả luồng xử lý chính để học viên không bị lạc hướng. Bỏ nếu muốn học viên tự thiết kế. -->
+<!-- Outline the main processing flow so students don't get lost. Remove if you want students to figure it out themselves. -->
 
 ```
-1. Khởi tạo ...
-2. Vòng lặp chính: đọc dữ liệu → xử lý → ghi kết quả
-3. Cleanup tài nguyên trước khi thoát
+1. Initialize ...
+2. Main loop: read data → process → write result
+3. Clean up resources before exiting
 ```
 
-### Yêu cầu đầu ra (tuỳ chọn)
+### Expected Output (optional)
 
-<!-- Mô tả output mong đợi khi chạy chương trình. Dùng khi cần kiểm tra output tự động. -->
+<!-- Describe the expected program output. Use when automatic output checking is needed. -->
 
-Khi chạy với input `...`, output phải là:
+When run with input `...`, the output must be:
 
 ```
 expected output line 1
 expected output line 2
 ```
 
-Exit code: `0` khi thành công, khác `0` khi lỗi.
+Exit code: `0` on success, non-zero on error.
 
-### Yêu cầu file nộp
+### Submission
 
 ```
 Exercise_1/
-├── main.c        (bắt buộc)
-├── Makefile      (bắt buộc — target: all, clean)
-└── *.h           (nếu có)
+├── main.c        (required)
+├── Makefile      (required — targets: all, clean)
+└── *.h           (if any)
 ```
 
 ---
 
 ## Exercise_2 [review-only]
 
-### Đề bài
+### Problem Statement
 
-Viết Device Tree overlay cho ...
+Write a Device Tree overlay for ...
 
-### Yêu cầu file nộp
+### Submission
 
 ```
 Exercise_2/
-└── my-overlay.dts    (bắt buộc)
+└── my-overlay.dts    (required)
 ```
 
 ---
 
 ## Exercise_3 [build]
 
-### Đề bài
+### Problem Statement
 
 ...
 
-### Yêu cầu file nộp
+### Submission
 
 ```
 Exercise_3/
