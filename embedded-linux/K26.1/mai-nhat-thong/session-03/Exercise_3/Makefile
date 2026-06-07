@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -Werror -std=gnu99 -O2
 TARGET_FLOCK = writer_flock
 TARGET_FCNTL = writer_fcntl
 
@@ -11,7 +11,6 @@ $(TARGET_FLOCK): writer_flock.c
 $(TARGET_FCNTL): writer_fcntl.c
 	$(CC) $(CFLAGS) writer_fcntl.c -o $(TARGET_FCNTL)
 
-# Chạy thử nghiệm đồng thời 5 tiến trình bằng flock
 test_flock: $(TARGET_FLOCK)
 	@echo "Testing flock concurrency..."
 	./$(TARGET_FLOCK) "Msg 1 from flock" & \
@@ -23,7 +22,6 @@ test_flock: $(TARGET_FLOCK)
 	@echo "--- Resulting system.log (flock) ---"
 	@cat system.log
 
-# Chạy thử nghiệm đồng thời 5 tiến trình bằng fcntl
 test_fcntl: $(TARGET_FCNTL)
 	@echo "Testing fcntl concurrency..."
 	./$(TARGET_FCNTL) "Msg 1 from fcntl" & \

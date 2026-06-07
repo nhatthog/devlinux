@@ -16,6 +16,7 @@
 #include <string.h>
 
 #define LOG_FILE "system.log"
+#define SLEEP_DURATION_US 50000
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -29,37 +30,48 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Acquire Exclusive Lock (Blocking)
     if (flock(fd, LOCK_EX) < 0) {
         perror("flock LOCK_EX");
         close(fd);
         return EXIT_FAILURE;
     }
 
-    // Lấy thời gian hiện tại
     time_t rawtime;
     struct tm *timeinfo;
     char time_buffer[20];
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);
+    if (timeinfo == NULL) {
+        perror("localtime");
+        flock(fd, LOCK_UN);
+        close(fd);
+        return EXIT_FAILURE;
+    }
     strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
 
-    // Format log string
     char log_buffer[512];
     int len = snprintf(log_buffer, sizeof(log_buffer), "[PID:%d] [%s] [%s] %s\n",
                        getpid(), time_buffer, "INFO", argv[1]);
 
-    // Giả lập xử lý nặng một chút để kiểm tra tính tranh chấp (race condition)
-    usleep(50000);
+    usleep(SLEEP_DURATION_US);
 
     if (write(fd, log_buffer, len) != len) {
         perror("write");
     }
 
-    // Release Lock
-    flock(fd, LOCK_UN);
-    close(fd);
+    /* Đảm bảo toàn bộ data được flush xuống ổ đĩa vật lý trước khi nhả khóa */
+    if (fsync(fd) < 0) {
+        perror("fsync failed");
+    }
+
+    if (flock(fd, LOCK_UN) < 0) {
+        perror("flock LOCK_UN failed");
+    }
+
+    if (close(fd) < 0) {
+        perror("close fd failed");
+    }
 
     return EXIT_SUCCESS;
 }

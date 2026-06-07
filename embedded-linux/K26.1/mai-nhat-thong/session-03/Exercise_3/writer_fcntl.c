@@ -15,6 +15,7 @@
 #include <string.h>
 
 #define LOG_FILE "system.log"
+#define SLEEP_DURATION_US 50000
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -28,15 +29,13 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Thiết lập cấu trúc fcntl để khóa toàn bộ file
     struct flock fl = {
-        .l_type   = F_WRLCK,   // Exclusive Write lock
+        .l_type   = F_WRLCK,
         .l_whence = SEEK_SET,
         .l_start  = 0,
-        .l_len    = 0,         // 0 có nghĩa là khóa cho đến hết file (EOF)
+        .l_len    = 0,
     };
 
-    // Acquire lock (Blocking)
     if (fcntl(fd, F_SETLKW, &fl) < 0) {
         perror("fcntl F_SETLKW");
         close(fd);
@@ -49,22 +48,39 @@ int main(int argc, char *argv[]) {
 
     time(&rawtime);
     timeinfo = localtime(&rawtime);
+    if (timeinfo == NULL) {
+        perror("localtime");
+        fl.l_type = F_UNLCK;
+        fcntl(fd, F_SETLK, &fl);
+        close(fd);
+        return EXIT_FAILURE;
+    }
     strftime(time_buffer, sizeof(time_buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
 
     char log_buffer[512];
     int len = snprintf(log_buffer, sizeof(log_buffer), "[PID:%d] [%s] [%s] %s\n",
                        getpid(), time_buffer, "INFO", argv[1]);
 
-    usleep(50000);
+    usleep(SLEEP_DURATION_US);
 
     if (write(fd, log_buffer, len) != len) {
         perror("write");
     }
 
-    // Unlock
-    fl.l_type = F_UNLCK;
-    fcntl(fd, F_SETLK, &fl);
+    /* Đảm bảo toàn bộ data thực sự ghi xuống đĩa trước khi unlock */
+    if (fsync(fd) < 0) {
+        perror("fsync failed");
+    }
 
-    close(fd);
+    /* Check return value của việc UNLOCK */
+    fl.l_type = F_UNLCK;
+    if (fcntl(fd, F_SETLK, &fl) < 0) {
+        perror("fcntl F_SETLK (unlock) failed");
+    }
+
+    if (close(fd) < 0) {
+        perror("close fd failed");
+    }
+
     return EXIT_SUCCESS;
 }

@@ -15,12 +15,12 @@ typedef struct {
     float gpa;
 } Student;
 
-void flush_stdin() {
+static void flush_stdin(void) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-void add_student(int fd) {
+static void add_student(int fd) {
     Student s;
     memset(&s, 0, sizeof(Student));
 
@@ -30,7 +30,7 @@ void add_student(int fd) {
 
     printf("Enter Name: ");
     if (fgets(s.name, sizeof(s.name), stdin)) {
-        s.name[strcspn(s.name, "\n")] = 0; // Strip newline
+        s.name[strcspn(s.name, "\n")] = 0;
     }
 
     printf("Enter Age: ");
@@ -40,28 +40,44 @@ void add_student(int fd) {
     if (scanf("%f", &s.gpa) != 1) return;
     flush_stdin();
 
-    // Di chuyển về cuối file để append
-    lseek(fd, 0, SEEK_END);
+    if (lseek(fd, 0, SEEK_END) == (off_t)-1) {
+        perror("lseek to end failed");
+        return;
+    }
+
     if (write(fd, &s, sizeof(Student)) != sizeof(Student)) {
-        perror("Error writing to file");
+        perror("Error writing student record");
     } else {
         printf("Student added successfully.\n");
     }
 }
 
-void list_students(int fd) {
+static void list_students(int fd) {
     Student s;
-    lseek(fd, 0, SEEK_SET); // Quay về đầu file
+    if (lseek(fd, 0, SEEK_SET) == (off_t)-1) {
+        perror("lseek to start failed");
+        return;
+    }
 
     printf("\n--- Student List ---\n");
     printf("%-5s %-20s %-5s %-5s\n", "ID", "Name", "Age", "GPA");
     
-    while (read(fd, &s, sizeof(Student)) == sizeof(Student)) {
-        printf("%-5d %-20s %-5d %-5.2f\n", s.id, s.name, s.age, s.gpa);
+    while (1) {
+        ssize_t bytes_read = read(fd, &s, sizeof(Student));
+        if (bytes_read < 0) {
+            perror("Error reading file");
+            break;
+        }
+        if (bytes_read == 0) {
+            break; /* EOF */
+        }
+        if (bytes_read == sizeof(Student)) {
+            printf("%-5d %-20s %-5d %-5.2f\n", s.id, s.name, s.age, s.gpa);
+        }
     }
 }
 
-void find_student(int fd) {
+static void find_student(int fd) {
     int search_id;
     Student s;
     int found = 0;
@@ -73,9 +89,21 @@ void find_student(int fd) {
     }
     flush_stdin();
 
-    lseek(fd, 0, SEEK_SET);
-    while (read(fd, &s, sizeof(Student)) == sizeof(Student)) {
-        if (s.id == search_id) {
+    if (lseek(fd, 0, SEEK_SET) == (off_t)-1) {
+        perror("lseek to start failed");
+        return;
+    }
+
+    while (1) {
+        ssize_t bytes_read = read(fd, &s, sizeof(Student));
+        if (bytes_read < 0) {
+            perror("Error reading file");
+            break;
+        }
+        if (bytes_read == 0) {
+            break;
+        }
+        if (bytes_read == sizeof(Student) && s.id == search_id) {
             printf("\nStudent Found:\n");
             printf("ID: %d\nName: %s\nAge: %d\nGPA: %.2f\n", s.id, s.name, s.age, s.gpa);
             found = 1;
@@ -87,7 +115,7 @@ void find_student(int fd) {
     }
 }
 
-int main() {
+int main(void) {
     int fd = open(FILE_NAME, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {
         perror("Failed to open file");
@@ -119,6 +147,9 @@ int main() {
         }
     } while (choice != 4);
 
-    close(fd);
+    if (close(fd) < 0) {
+        perror("Error closing file");
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }

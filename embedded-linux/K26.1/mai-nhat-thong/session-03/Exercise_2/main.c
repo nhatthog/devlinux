@@ -15,12 +15,12 @@ typedef struct {
     double price;
 } Product;
 
-void flush_stdin() {
+static void flush_stdin(void) {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-void add_product(int fd) {
+static void add_product(int fd) {
     Product p;
     memset(&p, 0, sizeof(Product));
 
@@ -40,7 +40,11 @@ void add_product(int fd) {
     if (scanf("%lf", &p.price) != 1) return;
     flush_stdin();
 
-    lseek(fd, 0, SEEK_END);
+    if (lseek(fd, 0, SEEK_END) == (off_t)-1) {
+        perror("lseek to end failed");
+        return;
+    }
+
     if (write(fd, &p, sizeof(Product)) != sizeof(Product)) {
         perror("Error saving product");
     } else {
@@ -48,7 +52,7 @@ void add_product(int fd) {
     }
 }
 
-void show_product_by_index(int fd) {
+static void show_product_by_index(int fd) {
     int index;
     Product p;
 
@@ -56,22 +60,33 @@ void show_product_by_index(int fd) {
     if (scanf("%d", &index) != 1) { flush_stdin(); return; }
     flush_stdin();
 
-    off_t offset = (off_t)index * sizeof(Product);
-    off_t file_size = lseek(fd, 0, SEEK_END);
+    const off_t offset = (off_t)index * sizeof(Product);
+    
+    const off_t file_size = lseek(fd, 0, SEEK_END);
+    if (file_size == (off_t)-1) {
+        perror("lseek file size check failed");
+        return;
+    }
     
     if (offset >= file_size || offset < 0) {
         printf("Error: Index out of bounds!\n");
         return;
     }
 
-    lseek(fd, offset, SEEK_SET);
+    if (lseek(fd, offset, SEEK_SET) == (off_t)-1) {
+        perror("lseek to target offset failed");
+        return;
+    }
+
     if (read(fd, &p, sizeof(Product)) == sizeof(Product)) {
         printf("\nProduct at index %d:\n", index);
         printf("ID: %d\nName: %s\nQuantity: %d\nPrice: %.2f\n", p.id, p.name, p.quantity, p.price);
+    } else {
+        perror("Error reading product record");
     }
 }
 
-void update_quantity_by_index(int fd) {
+static void update_quantity_by_index(int fd) {
     int index, new_qty;
 
     printf("Enter product index to update (0-based): ");
@@ -81,18 +96,25 @@ void update_quantity_by_index(int fd) {
     if (scanf("%d", &new_qty) != 1) { flush_stdin(); return; }
     flush_stdin();
 
-    off_t offset = (off_t)index * sizeof(Product);
-    off_t file_size = lseek(fd, 0, SEEK_END);
+    const off_t offset = (off_t)index * sizeof(Product);
+    const off_t file_size = lseek(fd, 0, SEEK_END);
+    if (file_size == (off_t)-1) {
+        perror("lseek file size check failed");
+        return;
+    }
 
     if (offset >= file_size || offset < 0) {
         printf("Error: Index out of bounds!\n");
         return;
     }
 
-    // Tính toán offset chính xác đến byte của trường quantity
-    off_t field_offset = offset + offsetof(Product, quantity);
+    const off_t field_offset = offset + offsetof(Product, quantity);
     
-    lseek(fd, field_offset, SEEK_SET);
+    if (lseek(fd, field_offset, SEEK_SET) == (off_t)-1) {
+        perror("lseek to field offset failed");
+        return;
+    }
+
     if (write(fd, &new_qty, sizeof(int)) == sizeof(int)) {
         printf("Quantity updated successfully via lseek.\n");
     } else {
@@ -100,19 +122,32 @@ void update_quantity_by_index(int fd) {
     }
 }
 
-void list_all_products(int fd) {
+static void list_all_products(int fd) {
     Product p;
-    lseek(fd, 0, SEEK_SET);
+    if (lseek(fd, 0, SEEK_SET) == (off_t)-1) {
+        perror("lseek to start failed");
+        return;
+    }
     int idx = 0;
 
     printf("\n--- Product List ---\n");
     printf("%-5s %-5s %-20s %-10s %-10s\n", "Idx", "ID", "Name", "Qty", "Price");
-    while (read(fd, &p, sizeof(Product)) == sizeof(Product)) {
-        printf("%-5d %-5d %-20s %-10d %-10.2f\n", idx++, p.id, p.name, p.quantity, p.price);
+    while (1) {
+        ssize_t bytes_read = read(fd, &p, sizeof(Product));
+        if (bytes_read < 0) {
+            perror("Error reading products");
+            break;
+        }
+        if (bytes_read == 0) {
+            break;
+        }
+        if (bytes_read == sizeof(Product)) {
+            printf("%-5d %-5d %-20s %-10d %-10.2f\n", idx++, p.id, p.name, p.quantity, p.price);
+        }
     }
 }
 
-int main() {
+int main(void) {
     int fd = open(FILE_NAME, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {
         perror("Failed to open file");
@@ -146,6 +181,9 @@ int main() {
         }
     } while (choice != 5);
 
-    close(fd);
+    if (close(fd) < 0) {
+        perror("Error closing file");
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
