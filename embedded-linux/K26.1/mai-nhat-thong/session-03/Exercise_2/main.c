@@ -57,7 +57,6 @@ void show_product_by_index(int fd) {
     flush_stdin();
 
     off_t offset = (off_t)index * sizeof(Product);
-    // Kiểm tra xem index có vượt quá kích thước file không
     off_t file_size = lseek(fd, 0, SEEK_END);
     
     if (offset >= file_size || offset < 0) {

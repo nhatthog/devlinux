@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
                        getpid(), time_buffer, "INFO", argv[1]);
 
     // Giả lập xử lý nặng một chút để kiểm tra tính tranh chấp (race condition)
-    usleep(50000); // 50ms
+    usleep(50000);
 
     if (write(fd, log_buffer, len) != len) {
         perror("write");

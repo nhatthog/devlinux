@@ -88,7 +88,6 @@ void find_student(int fd) {
 }
 
 int main() {
-    // Mở file với quyền Đọc/Ghi, Tạo nếu chưa có, quyền là 0644
     int fd = open(FILE_NAME, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {
         perror("Failed to open file");

@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     int len = snprintf(log_buffer, sizeof(log_buffer), "[PID:%d] [%s] [%s] %s\n",
                        getpid(), time_buffer, "INFO", argv[1]);
 
-    usleep(50000); // 50ms race-condition test simulation
+    usleep(50000);
 
     if (write(fd, log_buffer, len) != len) {
         perror("write");
