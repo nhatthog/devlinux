@@ -1,22 +1,30 @@
+/**
+ * @file main.c
+ * @brief Main application demonstrating static and shared library usage.
+ */
+
 #include <stdio.h>
 #include <math.h>
 #include "calc.h"
 #include "logger.h"
 
+/* Removed magic number - defined explicit buffer limit */
+#define LOG_BUFFER_SIZE 128
+
 int main(void) {
     float a = 12.5f, b = 2.5f, c = 0.0f;
-    char log_buf[128];
+    char log_buf[LOG_BUFFER_SIZE];
 
     log_write("Application started.");
 
     // Addition
     float res_add = calc_add(a, b);
-    snprintf(log_buf, sizeof(log_buf), "Add: %f + %f = %f", a, b, res_add);
+    snprintf(log_buf, LOG_BUFFER_SIZE, "Add: %f + %f = %f", a, b, res_add);
     log_write(log_buf);
 
     // Division Valid
     float res_div = calc_div(a, b);
-    snprintf(log_buf, sizeof(log_buf), "Div: %f / %f = %f", a, b, res_div);
+    snprintf(log_buf, LOG_BUFFER_SIZE, "Div: %f / %f = %f", a, b, res_div);
     log_write(log_buf);
 
     // Division by zero
