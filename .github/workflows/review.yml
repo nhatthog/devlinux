@@ -43,12 +43,11 @@ jobs:
       # 1d. Add labels to PR (subject and course)
       - name: Add labels to PR
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }} \
-            --add-label "${{ steps.branch_info.outputs.subject }}" \
-            --add-label "${{ steps.branch_info.outputs.course }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels \
+            -d '{"labels":["${{ steps.branch_info.outputs.subject }}","${{ steps.branch_info.outputs.course }}"]}'
 
       # 2. Setup SSH để clone private repo
       - name: Setup SSH Deploy Key
